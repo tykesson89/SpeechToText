@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.speech.RecognizerIntent;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -23,12 +24,14 @@ import java.util.Locale;
 public class MainActivity extends AppCompatActivity {
     private ImageView btnSpeak;
     private TextView txtResult;
+    private TextView txtHint;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         btnSpeak = (ImageView)findViewById(R.id.btnSpeak);
         txtResult = (TextView)findViewById(R.id.txtResult);
+        txtHint = (TextView)findViewById(R.id.txtHint);
         initListeners();
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.RECORD_AUDIO}, 1);
@@ -51,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
         Intent i = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         i.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.ENGLISH);
-        i.putExtra(RecognizerIntent.EXTRA_PROMPT, "Say Something");
+        i.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak");
 
         try{
         startActivityForResult(i, 1);
@@ -67,7 +70,18 @@ public class MainActivity extends AppCompatActivity {
         switch (requestCode){
             case 1:if (resultCode == RESULT_OK && data != null){
                 ArrayList<String> result = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                txtResult.setText(result.get(0));
+                if(result.get(0).contains("yes") && !result.get(0).contains("no")){
+                    txtResult.setText("YES");
+                    txtResult.setTextColor(Color.RED);
+                    txtHint.setText("Wrong answer");
+                }else if(result.get(0).contains("no") && !result.get(0).contains("yes")){
+                    txtResult.setText("NO");
+                    txtResult.setTextColor(Color.GREEN);
+                    txtHint.setText("Right answer");
+                }else{
+                    txtResult.setText("");
+                    txtHint.setText("Hint: Use only 'yes' or 'no'");
+                }
             }
         }
 
